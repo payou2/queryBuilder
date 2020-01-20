@@ -11,3 +11,8 @@ type (
 		aliases map[string]string
 	}
 )
+
+const (
+	LEFT_JOIN = "LEFT JOIN"
+	JOIN      = "JOIN"
+)
