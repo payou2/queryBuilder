@@ -1,4 +1,4 @@
-module queryBuilder
+module github.com/payou2/queryBuilder
 
 go 1.13
 
