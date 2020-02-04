@@ -1,6 +1,9 @@
 package queryBuilder
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 func New() (qb QB) {
 	qb = QB{}
@@ -9,23 +12,78 @@ func New() (qb QB) {
 }
 
 func (qb QB) GetQuery() (str string) {
-	str += "SELECT " + get(qb.s, ", ")
+	switch qb.qt {
+	case SELECT_TYPE:
+		str = qb.GetSelectQuery()
+	case INSERT_TYPE:
+		str = qb.GetInsertQuery()
+	default:
+		str = ""
+	}
+
+	return str
+}
+
+func (qb QB) GetInsertQuery() (str string) {
+	str += "INSERT"
 	str += " "
-	str += "FROM " + qb.f
+	str += "INTO " + qb.table
+	str += get(qb.j, " ")
+	str += " ("
+	str += get(qb.fields, ", ")
+	str += ")"
+	str += " "
+	str += "VALUES ("
+	str += get(qb.val, ", ")
+	str += ")"
+	if w := get(qb.w, " AND "); w != "" {
+		str += " WHERE " + w
+	}
+
+	str += ";"
+
+	return str
+}
+
+func (qb QB) GetSelectQuery() (str string) {
+	str += "SELECT " + get(qb.fields, ", ")
+	str += " "
+	str += "FROM " + qb.table
 	str += " "
 	str += get(qb.j, " ")
-	str += " "
-	str += "WHERE " + get(qb.w, " AND ")
+	if w := get(qb.w, " AND "); w != "" {
+		str += " WHERE " + w
+	}
 
-	return
+	str += ";"
+
+	return str
+}
+
+func (qb *QB) Into(t string, a string) {
+	qb.qt = INSERT_TYPE
+	qb.From(t, a)
+}
+
+func (qb *QB) Insert(s string) {
+	qb.fields[getNextKey(&qb.fields)] = s
+}
+func (qb *QB) Values(val string) {
+	qb.val[getNextKey(&qb.val)] = val
 }
 
 func (qb *QB) Select(s string) {
-	qb.s[getNextKey(&qb.s)] = s
+	qb.qt = SELECT_TYPE
+	qb.fields[getNextKey(&qb.fields)] = s
 }
 
 func (qb *QB) From(t string, a string) {
-	qb.f = fmt.Sprintf("%s as %s", t, a)
+	if strings.TrimSpace(a) == "" {
+		qb.table = t
+	} else {
+		qb.table = fmt.Sprintf("%s as %s", t, a)
+
+	}
 }
 
 func (qb *QB) Join(t string, a string, c string) {

@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestGetQuery(t *testing.T) {
+func TestGetSelectQuery(t *testing.T) {
 	qb := New()
 	qb.Select("country.id")
 	qb.Select("lang.id as langId")
@@ -20,8 +20,38 @@ func TestGetQuery(t *testing.T) {
 	f := "FROM countries as country "
 	j := "JOIN languages as lang ON country.code=lang.code "
 	lj := "LEFT JOIN phones as phone ON country.code=phone.code "
-	w := "WHERE country.id = 1 AND lang.id = 2"
+	w := "WHERE country.id = 1 AND lang.id = 2;"
 	expected := s + f + j + lj + w
+	actual := qb.GetQuery()
+	assert.Equal(t, expected, actual, "")
+}
+
+func TestGetSelectQueryAll(t *testing.T) {
+	qb := New()
+	qb.Select("id")
+	qb.Select("title as title")
+	qb.From("countries", "")
+
+	s := "SELECT id, title as title "
+	f := "FROM countries "
+	w := ";"
+	expected := s + f + w
+	actual := qb.GetQuery()
+	assert.Equal(t, expected, actual, "")
+}
+
+func TestGetInsertQuery(t *testing.T) {
+	qb := New()
+	qb.Insert("code")
+	qb.Insert("title")
+	qb.Into("countries", "")
+	qb.Values("'ua'")
+	qb.Values("'Ukraine'")
+
+	i := "INSERT INTO countries (code, title) "
+	v := "VALUES ('ua', 'Ukraine');"
+
+	expected := i + v
 	actual := qb.GetQuery()
 	assert.Equal(t, expected, actual, "")
 }
